@@ -5,6 +5,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.chart.PieChart?>
@@ -14,10 +15,12 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane styleClass="app-shell" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="cohabit.ui.MainController">
-    <padding>
-        <Insets top="18.0" right="18.0" bottom="18.0" left="18.0" />
-    </padding>
+<ScrollPane fitToWidth="true" pannable="true" hbarPolicy="AS_NEEDED" vbarPolicy="AS_NEEDED" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="cohabit.ui.MainController">
+    <content>
+        <BorderPane styleClass="app-shell">
+            <padding>
+                <Insets top="18.0" right="18.0" bottom="18.0" left="18.0" />
+            </padding>
 
     <left>
         <VBox spacing="16.0" prefWidth="270.0" styleClass="side-rail">
@@ -112,22 +115,22 @@
                             <content>
                                 <HBox spacing="12.0">
                                     <children>
-                                        <VBox spacing="8.0" styleClass="workspace-card" HBox.hgrow="ALWAYS">
+                                        <VBox spacing="8.0" styleClass="workspace-card" minWidth="300.0" HBox.hgrow="ALWAYS">
                                             <children>
                                                 <Label text="Chores Snapshot" styleClass="card-title" />
                                                 <ListView fx:id="choresSummaryList" VBox.vgrow="ALWAYS" />
                                             </children>
                                         </VBox>
-                                        <VBox spacing="8.0" styleClass="workspace-card" HBox.hgrow="ALWAYS">
+                                        <VBox spacing="8.0" styleClass="workspace-card" minWidth="300.0" HBox.hgrow="ALWAYS">
                                             <children>
                                                 <Label text="Spent by Person" styleClass="card-title" />
                                                 <ListView fx:id="balancesSummaryList" prefHeight="240.0" VBox.vgrow="ALWAYS" />
                                             </children>
                                         </VBox>
-                                        <VBox spacing="8.0" styleClass="workspace-card" HBox.hgrow="ALWAYS">
+                                        <VBox spacing="8.0" styleClass="workspace-card" minWidth="320.0" HBox.hgrow="ALWAYS">
                                             <children>
                                                 <Label text="Spend Distribution" styleClass="card-title" />
-                                                <PieChart fx:id="spendingPieChart" labelsVisible="true" legendVisible="true" />
+                                                <PieChart fx:id="spendingPieChart" labelsVisible="false" legendVisible="false" minHeight="260.0" prefHeight="300.0" />
                                             </children>
                                         </VBox>
                                     </children>
@@ -178,4 +181,6 @@
             </children>
         </VBox>
     </center>
-</BorderPane>
+        </BorderPane>
+    </content>
+</ScrollPane>

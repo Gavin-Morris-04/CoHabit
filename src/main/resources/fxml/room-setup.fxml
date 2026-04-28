@@ -4,49 +4,55 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox spacing="14.0" styleClass="setup-shell" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="cohabit.ui.RoomSetupController">
-    <padding>
-        <Insets top="18.0" right="18.0" bottom="18.0" left="18.0" />
-    </padding>
-    <children>
-        <HBox alignment="CENTER_LEFT" spacing="10.0">
+<ScrollPane fitToWidth="true" pannable="true" hbarPolicy="AS_NEEDED" vbarPolicy="AS_NEEDED" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="cohabit.ui.RoomSetupController">
+    <content>
+        <VBox spacing="14.0" styleClass="setup-shell">
+            <padding>
+                <Insets top="18.0" right="18.0" bottom="18.0" left="18.0" />
+            </padding>
             <children>
-                <VBox spacing="3.0">
+                <HBox alignment="CENTER_LEFT" spacing="10.0">
                     <children>
-                        <Label text="Welcome to CoHabit" styleClass="setup-title" />
-                        <Label text="Spin up your space in under a minute." styleClass="setup-subtitle" />
-                    </children>
-                </VBox>
-                <Region HBox.hgrow="ALWAYS" />
-                <Label text="Step 1/1" styleClass="step-badge" />
-            </children>
-        </HBox>
-        <VBox spacing="10.0" styleClass="setup-card">
-            <children>
-                <Label text="Room Username (shared login id)" styleClass="setup-label" />
-                <TextField fx:id="roomUsernameField" promptText="e.g. apt4b" />
-                <Label text="Room Title" styleClass="setup-label" />
-                <TextField fx:id="roomNameField" promptText="e.g. Apartment 4B" />
-                <Label text="Your Name" styleClass="setup-label" />
-                <TextField fx:id="yourNameField" promptText="e.g. Gavin" />
-                <Label text="Room Password" styleClass="setup-label" />
-                <PasswordField fx:id="passwordField" promptText="Create a shared room password" />
-                <Label text="Other Roommates (comma-separated, 1-9)" styleClass="setup-label" />
-                <TextArea fx:id="roommatesArea" promptText="Ava, Ben, Kai" prefHeight="120.0" />
-                <HBox alignment="CENTER_LEFT">
-                    <children>
-                        <Label fx:id="statusLabel" text="" styleClass="setup-subtitle" />
+                        <VBox spacing="3.0">
+                            <children>
+                                <Label text="Welcome to CoHabit" styleClass="setup-title" />
+                                <Label text="Spin up your space in under a minute." styleClass="setup-subtitle" />
+                            </children>
+                        </VBox>
                         <Region HBox.hgrow="ALWAYS" />
-                        <Button text="Create Room" onAction="#onCreateRoom" styleClass="brand-button" />
+                        <Label text="Step 1/1" styleClass="step-badge" />
                     </children>
                 </HBox>
+                <VBox spacing="10.0" styleClass="setup-card">
+                    <children>
+                        <Label text="Room Username (shared login id)" styleClass="setup-label" />
+                        <TextField fx:id="roomUsernameField" promptText="e.g. apt4b" />
+                        <Label text="Room Title" styleClass="setup-label" />
+                        <TextField fx:id="roomNameField" promptText="e.g. Apartment 4B" />
+                        <Label text="Your Name" styleClass="setup-label" />
+                        <TextField fx:id="yourNameField" promptText="e.g. Gavin" />
+                        <Label text="Room Password" styleClass="setup-label" />
+                        <PasswordField fx:id="passwordField" promptText="Create a shared room password" />
+                        <Label text="Other Roommates (comma-separated, 1-9)" styleClass="setup-label" />
+                        <TextArea fx:id="roommatesArea" promptText="Ava, Ben, Kai" prefHeight="120.0" />
+                        <HBox alignment="CENTER_LEFT">
+                            <children>
+                                <Label fx:id="statusLabel" text="" styleClass="setup-subtitle" />
+                                <Region HBox.hgrow="ALWAYS" />
+                                <Button text="Back" onAction="#onBack" styleClass="ghost-button" />
+                                <Button text="Create Room" onAction="#onCreateRoom" styleClass="brand-button" />
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
             </children>
         </VBox>
-    </children>
-</VBox>
+    </content>
+</ScrollPane>

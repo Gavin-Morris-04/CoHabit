@@ -47,6 +47,11 @@ public class InMemoryGateway implements FirestoreGateway {
     }
 
     @Override
+    public List<User> getAllUsers() {
+        return new ArrayList<>(users.values());
+    }
+
+    @Override
     public Chore saveChore(Chore chore) {
         chores.put(chore.getChoreID(), chore);
         return chore;
@@ -58,6 +63,11 @@ public class InMemoryGateway implements FirestoreGateway {
     }
 
     @Override
+    public void deleteChore(String choreId) {
+        chores.remove(choreId);
+    }
+
+    @Override
     public Expense saveExpense(Expense expense) {
         expenses.put(expense.getExpenseID(), expense);
         return expense;
@@ -66,5 +76,15 @@ public class InMemoryGateway implements FirestoreGateway {
     @Override
     public List<Expense> getExpensesByRoom(String roomId) {
         return expenses.values().stream().filter(e -> roomId.equals(e.getRoomID())).collect(Collectors.toList());
+    }
+
+    @Override
+    public void deleteExpense(String expenseId) {
+        expenses.remove(expenseId);
+    }
+
+    @Override
+    public List<Room> getAllRooms() {
+        return new ArrayList<>(rooms.values());
     }
 }

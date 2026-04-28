@@ -5,8 +5,11 @@ import cohabit.model.Expense;
 import cohabit.model.Room;
 import cohabit.model.User;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class FirebaseService {
@@ -16,8 +19,9 @@ public class FirebaseService {
 
     public FirebaseService(Path fallbackPath) {
         this.localFallback = new LocalJsonStore(fallbackPath);
-        String projectId = System.getenv("FIREBASE_PROJECT_ID");
-        String apiKey = System.getenv("FIREBASE_API_KEY");
+        Map<String, String> envFileValues = loadDotEnv(Path.of(".env"));
+        String projectId = resolveConfig("FIREBASE_PROJECT_ID", envFileValues);
+        String apiKey = resolveConfig("FIREBASE_API_KEY", envFileValues);
         if (projectId == null || projectId.isBlank() || apiKey == null || apiKey.isBlank()) {
             this.remoteGateway = null;
             this.usingFallback = true;
@@ -89,6 +93,47 @@ public class FirebaseService {
 
     public List<Room> getAllRooms() throws IOException, InterruptedException {
         return execute(FirestoreGateway::getAllRooms);
+    }
+
+    private String resolveConfig(String key, Map<String, String> envFileValues) {
+        String envValue = System.getenv(key);
+        if (envValue != null && !envValue.isBlank()) {
+            return envValue;
+        }
+        String fileValue = envFileValues.get(key);
+        if (fileValue == null || fileValue.isBlank()) {
+            return null;
+        }
+        return fileValue;
+    }
+
+    private Map<String, String> loadDotEnv(Path envPath) {
+        Map<String, String> values = new HashMap<>();
+        if (!Files.exists(envPath)) {
+            return values;
+        }
+        try {
+            List<String> lines = Files.readAllLines(envPath);
+            for (String line : lines) {
+                String trimmed = line.trim();
+                if (trimmed.isEmpty() || trimmed.startsWith("#")) {
+                    continue;
+                }
+                int separator = trimmed.indexOf('=');
+                if (separator <= 0) {
+                    continue;
+                }
+                String key = trimmed.substring(0, separator).trim();
+                String value = trimmed.substring(separator + 1).trim();
+                if ((value.startsWith("\"") && value.endsWith("\"")) || (value.startsWith("'") && value.endsWith("'"))) {
+                    value = value.substring(1, value.length() - 1);
+                }
+                values.put(key, value);
+            }
+        } catch (IOException ignored) {
+            // If .env cannot be read, default to local fallback behavior.
+        }
+        return values;
     }
 
     private <T> T execute(Operation<T> operation) throws IOException, InterruptedException {

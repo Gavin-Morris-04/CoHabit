@@ -19,6 +19,7 @@ class ExpenseManagerTest {
                 "Groceries",
                 120.0,
                 "u1",
+                true,
                 List.of("u1", "u2", "u3"),
                 true,
                 Map.of()
@@ -28,23 +29,24 @@ class ExpenseManagerTest {
     }
 
     @Test
-    void customSplitMustAddToHundred() {
+    void customSplitAssignsRemainderToPayer() throws Exception {
         InMemoryGateway gateway = new InMemoryGateway();
         FirebaseService service = new FirebaseService(gateway, gateway);
         ExpenseManager expenseManager = new ExpenseManager(service);
 
-        Assertions.assertThrows(
-                IllegalArgumentException.class,
-                () -> expenseManager.addExpense(
-                        "room-1",
-                        "Utilities",
-                        100.0,
-                        "u1",
-                        List.of("u1", "u2"),
-                        false,
-                        Map.of("u1", 70.0, "u2", 20.0)
-                )
+        Expense expense = expenseManager.addExpense(
+                "room-1",
+                "Utilities",
+                100.0,
+                "u1",
+                true,
+                List.of("u1", "u2"),
+                false,
+                Map.of("u1", 70.0, "u2", 20.0)
         );
+        Assertions.assertEquals(80.0, expense.getCustomSplitPercentages().get("u1"));
+        Assertions.assertEquals(20.0, expense.getCustomSplitPercentages().get("u2"));
+        Assertions.assertEquals(100.0, expense.getCustomSplitPercentages().values().stream().mapToDouble(Double::doubleValue).sum(), 0.0001);
     }
 
     @Test
@@ -56,10 +58,12 @@ class ExpenseManagerTest {
         Expense e1 = new Expense();
         e1.setPaidByUserID("u1");
         e1.setAmount(100.0);
+        e1.setPaid(true);
         e1.setCustomSplitPercentages(Map.of("u1", 50.0, "u2", 50.0));
         Expense e2 = new Expense();
         e2.setPaidByUserID("u2");
         e2.setAmount(60.0);
+        e2.setPaid(true);
         e2.setCustomSplitPercentages(Map.of("u1", 50.0, "u2", 50.0));
 
         Map<String, Double> balances = expenseManager.calculateNetBalances(List.of(e1, e2), List.of("u1", "u2"));

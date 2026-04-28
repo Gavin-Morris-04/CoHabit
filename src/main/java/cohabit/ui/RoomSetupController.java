@@ -74,6 +74,12 @@ public class RoomSetupController {
         }
     }
 
+    @FXML
+    private void onBack() {
+        Stage stage = (Stage) roomNameField.getScene().getWindow();
+        stage.close();
+    }
+
     private void showError(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR, message);
         alert.setHeaderText("Room Setup Error");

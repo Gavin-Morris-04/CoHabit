@@ -563,13 +563,15 @@ public class MainController {
                     continue;
                 }
                 paidExpensesForPie.add(expense);
-                for (Map.Entry<String, Double> split : expense.getCustomSplitPercentages().entrySet()) {
-                    double shareAmount = expense.getAmount() * (split.getValue() / 100.0);
-                    spentByUser.put(
-                            split.getKey(),
-                            spentByUser.getOrDefault(split.getKey(), 0.0) + shareAmount
-                    );
+                String payerId = expense.getPaidByUserID();
+                double payerShareAmount = calculateUserShareAmount(expense, payerId);
+                if (payerShareAmount <= 0.005) {
+                    continue;
                 }
+                spentByUser.put(
+                        payerId,
+                        spentByUser.getOrDefault(payerId, 0.0) + payerShareAmount
+                );
             }
             pieSliceUserIds.clear();
             List<PieChart.Data> pieData = new ArrayList<>();
@@ -727,17 +729,16 @@ public class MainController {
 
     private void showPieSliceDetails(String name, String userId, double amount, double percentage) {
         List<Expense> personPaidExpenses = paidExpensesForPie.stream()
-                .filter(expense -> expense.getCustomSplitPercentages().containsKey(userId))
+                .filter(expense -> userId.equals(expense.getPaidByUserID()))
                 .collect(Collectors.toList());
         List<String> paidOn = personPaidExpenses.stream()
                 .map(expense -> {
-                    double pct = expense.getCustomSplitPercentages().getOrDefault(userId, 0.0);
-                    double share = expense.getAmount() * (pct / 100.0);
+                    double share = calculateUserShareAmount(expense, userId);
                     return "- " + expense.getDescription() + " ($" + String.format("%.2f", share) + ")";
                 })
                 .collect(Collectors.toList());
         double totalSpent = personPaidExpenses.stream()
-                .mapToDouble(expense -> expense.getAmount() * (expense.getCustomSplitPercentages().getOrDefault(userId, 0.0) / 100.0))
+                .mapToDouble(expense -> calculateUserShareAmount(expense, userId))
                 .sum();
         String paidOnText = paidOn.isEmpty() ? "- No paid expenses recorded." : String.join("\n", paidOn);
         Alert alert = new Alert(
@@ -749,6 +750,39 @@ public class MainController {
         );
         alert.setHeaderText("Spending Details");
         alert.showAndWait();
+    }
+
+    private double calculateUserShareAmount(Expense expense, String userId) {
+        if (expense == null || userId == null || userId.isBlank()) {
+            return 0.0;
+        }
+        double pct = resolveUserSharePercent(expense, userId);
+        return expense.getAmount() * (pct / 100.0);
+    }
+
+    private double resolveUserSharePercent(Expense expense, String userId) {
+        Map<String, Double> splits = expense.getCustomSplitPercentages();
+        if (splits == null || splits.isEmpty()) {
+            if (appContext.getActiveMembers().isEmpty()) {
+                return 0.0;
+            }
+            return 100.0 / appContext.getActiveMembers().size();
+        }
+        Double direct = splits.get(userId);
+        if (direct != null && direct > 0.0) {
+            return direct;
+        }
+        if (!userId.equals(expense.getPaidByUserID())) {
+            return 0.0;
+        }
+        double total = splits.values().stream()
+                .filter(value -> value != null && value > 0.0)
+                .mapToDouble(Double::doubleValue)
+                .sum();
+        if (total >= 99.99) {
+            return 0.0;
+        }
+        return 100.0 - total;
     }
 
     private static class StatusAwareCell extends ListCell<String> {
