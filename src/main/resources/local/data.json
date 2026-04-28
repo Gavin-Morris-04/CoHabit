@@ -1,0 +1,184 @@
+{
+  "rooms" : {
+    "e42c35fb-fc9f-4f2b-bd59-b8aeae59f4b6" : {
+      "roomID" : "e42c35fb-fc9f-4f2b-bd59-b8aeae59f4b6",
+      "name" : "The Dungeon",
+      "memberIds" : [ "717cc077-910f-4133-823a-2f36801b0928", "0db919ce-0634-4237-b0ae-44f3b880db18", "a2aa65cb-d437-4d81-893a-553a30f3214d" ]
+    },
+    "35aac0bc-26eb-45fe-88b9-6e4bce99d1a1" : {
+      "roomID" : "35aac0bc-26eb-45fe-88b9-6e4bce99d1a1",
+      "name" : "The Dungeon",
+      "memberIds" : [ "0dc058e6-7353-403b-8efe-c5ab9995866b", "62a89187-ead0-4ab0-9ce3-e9c2bc92ea66", "3a15139c-22ed-4d71-b486-d518038437a4" ]
+    },
+    "a00456e5-e8e4-476c-ac06-268e3333fc18" : {
+      "roomID" : "a00456e5-e8e4-476c-ac06-268e3333fc18",
+      "name" : "The Eclipse",
+      "memberIds" : [ "31ceba3b-7b9f-4197-9134-05698cae7fcc", "bcb12ae2-2666-4313-b24b-158590a1a47f", "e158a5fa-00b3-4632-a3f7-4d02c3c10c4a" ]
+    },
+    "e0facb88-965e-4708-ba2e-90100b3e317f" : {
+      "roomID" : "e0facb88-965e-4708-ba2e-90100b3e317f",
+      "name" : "The Dungeon",
+      "memberIds" : [ "3fdbf36c-1a86-4c07-8897-bacba0ba8642", "a4650b6f-9d0c-46d0-8db3-cd7da3d52dd4", "91cfe14f-2975-4003-933b-7391cf889a87" ]
+    }
+  },
+  "users" : {
+    "717cc077-910f-4133-823a-2f36801b0928" : {
+      "userID" : "717cc077-910f-4133-823a-2f36801b0928",
+      "name" : "Gavin"
+    },
+    "0db919ce-0634-4237-b0ae-44f3b880db18" : {
+      "userID" : "0db919ce-0634-4237-b0ae-44f3b880db18",
+      "name" : "Caiden"
+    },
+    "a2aa65cb-d437-4d81-893a-553a30f3214d" : {
+      "userID" : "a2aa65cb-d437-4d81-893a-553a30f3214d",
+      "name" : "Lebron"
+    },
+    "0dc058e6-7353-403b-8efe-c5ab9995866b" : {
+      "userID" : "0dc058e6-7353-403b-8efe-c5ab9995866b",
+      "name" : "Gavin"
+    },
+    "62a89187-ead0-4ab0-9ce3-e9c2bc92ea66" : {
+      "userID" : "62a89187-ead0-4ab0-9ce3-e9c2bc92ea66",
+      "name" : "Caiden"
+    },
+    "3a15139c-22ed-4d71-b486-d518038437a4" : {
+      "userID" : "3a15139c-22ed-4d71-b486-d518038437a4",
+      "name" : "Lebron"
+    },
+    "31ceba3b-7b9f-4197-9134-05698cae7fcc" : {
+      "userID" : "31ceba3b-7b9f-4197-9134-05698cae7fcc",
+      "name" : "Gavin"
+    },
+    "bcb12ae2-2666-4313-b24b-158590a1a47f" : {
+      "userID" : "bcb12ae2-2666-4313-b24b-158590a1a47f",
+      "name" : "Caiden"
+    },
+    "e158a5fa-00b3-4632-a3f7-4d02c3c10c4a" : {
+      "userID" : "e158a5fa-00b3-4632-a3f7-4d02c3c10c4a",
+      "name" : "Kevin Durandt"
+    },
+    "3fdbf36c-1a86-4c07-8897-bacba0ba8642" : {
+      "userID" : "3fdbf36c-1a86-4c07-8897-bacba0ba8642",
+      "name" : "Gavin"
+    },
+    "a4650b6f-9d0c-46d0-8db3-cd7da3d52dd4" : {
+      "userID" : "a4650b6f-9d0c-46d0-8db3-cd7da3d52dd4",
+      "name" : "Caiden"
+    },
+    "91cfe14f-2975-4003-933b-7391cf889a87" : {
+      "userID" : "91cfe14f-2975-4003-933b-7391cf889a87",
+      "name" : "Jeremy Lin"
+    }
+  },
+  "chores" : {
+    "52ee2897-d893-4557-8fd1-c047dc0e471e" : {
+      "choreID" : "52ee2897-d893-4557-8fd1-c047dc0e471e",
+      "roomID" : "35aac0bc-26eb-45fe-88b9-6e4bce99d1a1",
+      "name" : "Take out the trash",
+      "assignedToUserID" : "3a15139c-22ed-4d71-b486-d518038437a4",
+      "status" : "completed",
+      "createdAt" : "2026-04-14T03:23:43.674909900Z",
+      "completedAt" : "2026-04-14T03:23:51.224632200Z"
+    },
+    "cc444948-75b7-41a7-9bbc-2b5dd4d44f18" : {
+      "choreID" : "cc444948-75b7-41a7-9bbc-2b5dd4d44f18",
+      "roomID" : "e0facb88-965e-4708-ba2e-90100b3e317f",
+      "name" : "Trash",
+      "assignedToUserID" : "91cfe14f-2975-4003-933b-7391cf889a87",
+      "status" : "pending",
+      "createdAt" : "2026-04-14T04:10:39.881984100Z",
+      "completedAt" : null
+    },
+    "3de3beb4-e4e3-46a0-b955-adafde309b77" : {
+      "choreID" : "3de3beb4-e4e3-46a0-b955-adafde309b77",
+      "roomID" : "e0facb88-965e-4708-ba2e-90100b3e317f",
+      "name" : "Dishes",
+      "assignedToUserID" : "91cfe14f-2975-4003-933b-7391cf889a87",
+      "status" : "pending",
+      "createdAt" : "2026-04-14T04:10:44.641990200Z",
+      "completedAt" : null
+    },
+    "efb01958-73ed-4dac-bb6a-d01a465940b5" : {
+      "choreID" : "efb01958-73ed-4dac-bb6a-d01a465940b5",
+      "roomID" : "e0facb88-965e-4708-ba2e-90100b3e317f",
+      "name" : "Dusting",
+      "assignedToUserID" : "91cfe14f-2975-4003-933b-7391cf889a87",
+      "status" : "pending",
+      "createdAt" : "2026-04-14T04:10:49.811718300Z",
+      "completedAt" : null
+    },
+    "0603d628-2f6f-4944-8cb2-b85e668e593b" : {
+      "choreID" : "0603d628-2f6f-4944-8cb2-b85e668e593b",
+      "roomID" : "e0facb88-965e-4708-ba2e-90100b3e317f",
+      "name" : "Cook",
+      "assignedToUserID" : "a4650b6f-9d0c-46d0-8db3-cd7da3d52dd4",
+      "status" : "pending",
+      "createdAt" : "2026-04-14T04:11:01.501365100Z",
+      "completedAt" : null
+    },
+    "3ef370ba-003c-423b-94c0-42c0e5458a3c" : {
+      "choreID" : "3ef370ba-003c-423b-94c0-42c0e5458a3c",
+      "roomID" : "e0facb88-965e-4708-ba2e-90100b3e317f",
+      "name" : "Sit there and look pretty",
+      "assignedToUserID" : "3fdbf36c-1a86-4c07-8897-bacba0ba8642",
+      "status" : "pending",
+      "createdAt" : "2026-04-14T04:11:11.396102800Z",
+      "completedAt" : null
+    }
+  },
+  "expenses" : {
+    "4385b624-e938-4b9e-8750-6b2f61f83af3" : {
+      "expenseID" : "4385b624-e938-4b9e-8750-6b2f61f83af3",
+      "roomID" : "e0facb88-965e-4708-ba2e-90100b3e317f",
+      "description" : "Water",
+      "paidByUserID" : "3fdbf36c-1a86-4c07-8897-bacba0ba8642",
+      "amount" : 150.0,
+      "customSplitPercentages" : {
+        "a4650b6f-9d0c-46d0-8db3-cd7da3d52dd4" : 33.333333333333336,
+        "3fdbf36c-1a86-4c07-8897-bacba0ba8642" : 33.333333333333336,
+        "91cfe14f-2975-4003-933b-7391cf889a87" : 33.333333333333336
+      },
+      "createdAt" : "2026-04-14T04:08:29.764476900Z"
+    },
+    "33fabac1-538a-4bf2-bcb2-5f8378f45e2b" : {
+      "expenseID" : "33fabac1-538a-4bf2-bcb2-5f8378f45e2b",
+      "roomID" : "e0facb88-965e-4708-ba2e-90100b3e317f",
+      "description" : "Food",
+      "paidByUserID" : "91cfe14f-2975-4003-933b-7391cf889a87",
+      "amount" : 300.0,
+      "customSplitPercentages" : {
+        "a4650b6f-9d0c-46d0-8db3-cd7da3d52dd4" : 33.333333333333336,
+        "3fdbf36c-1a86-4c07-8897-bacba0ba8642" : 33.333333333333336,
+        "91cfe14f-2975-4003-933b-7391cf889a87" : 33.333333333333336
+      },
+      "createdAt" : "2026-04-14T04:08:39.267073200Z"
+    },
+    "bfa37b93-a1f7-44c9-8199-2fee5e85eb8c" : {
+      "expenseID" : "bfa37b93-a1f7-44c9-8199-2fee5e85eb8c",
+      "roomID" : "e0facb88-965e-4708-ba2e-90100b3e317f",
+      "description" : "TV Subs",
+      "paidByUserID" : "a4650b6f-9d0c-46d0-8db3-cd7da3d52dd4",
+      "amount" : 1000.0,
+      "customSplitPercentages" : {
+        "a4650b6f-9d0c-46d0-8db3-cd7da3d52dd4" : 20.0,
+        "3fdbf36c-1a86-4c07-8897-bacba0ba8642" : 20.0,
+        "91cfe14f-2975-4003-933b-7391cf889a87" : 60.0
+      },
+      "createdAt" : "2026-04-14T04:09:00.265744200Z"
+    },
+    "f6f6b578-b2d8-4a3a-9173-7e138126fe6c" : {
+      "expenseID" : "f6f6b578-b2d8-4a3a-9173-7e138126fe6c",
+      "roomID" : "e0facb88-965e-4708-ba2e-90100b3e317f",
+      "description" : "Rent",
+      "paidByUserID" : "91cfe14f-2975-4003-933b-7391cf889a87",
+      "amount" : 10000.0,
+      "customSplitPercentages" : {
+        "a4650b6f-9d0c-46d0-8db3-cd7da3d52dd4" : 33.333333333333336,
+        "3fdbf36c-1a86-4c07-8897-bacba0ba8642" : 33.333333333333336,
+        "91cfe14f-2975-4003-933b-7391cf889a87" : 33.333333333333336
+      },
+      "createdAt" : "2026-04-14T04:09:12.911927300Z"
+    }
+  }
+}

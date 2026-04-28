@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.geometry.Pos?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.chart.PieChart?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane styleClass="app-shell" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="cohabit.ui.MainController">
+    <padding>
+        <Insets top="18.0" right="18.0" bottom="18.0" left="18.0" />
+    </padding>
+
+    <left>
+        <VBox spacing="16.0" prefWidth="270.0" styleClass="side-rail">
+            <padding>
+                <Insets top="14.0" right="14.0" bottom="14.0" left="14.0" />
+            </padding>
+            <children>
+                <VBox spacing="3.0">
+                    <children>
+                        <Label text="COHABIT" styleClass="logo-label" />
+                        <Label text="shared space cockpit" styleClass="rail-muted" />
+                    </children>
+                </VBox>
+
+                <Separator />
+
+                <VBox spacing="6.0" styleClass="room-chip">
+                    <children>
+                        <Label text="Active Room Title" styleClass="chip-title" />
+                        <Label fx:id="roomNameLabel" text="No room loaded" styleClass="chip-value" />
+                        <Label fx:id="membersLabel" text="Members" styleClass="chip-sub" wrapText="true" />
+                    </children>
+                </VBox>
+
+                <VBox spacing="8.0">
+                    <children>
+                        <Label text="System" styleClass="chip-title" />
+                        <Label fx:id="persistenceLabel" text="Persistence" styleClass="system-pill" wrapText="true" />
+                    </children>
+                </VBox>
+
+                <VBox spacing="6.0" styleClass="room-chip">
+                    <children>
+                        <Label text="Workspace Snapshot" styleClass="chip-title" />
+                        <Label text="Active user" styleClass="chip-title" />
+                        <Label fx:id="sideActiveUserLabel" text="-" styleClass="chip-sub" />
+                        <Label text="Open chores" styleClass="chip-title" />
+                        <Label fx:id="sideOpenChoresLabel" text="0" styleClass="chip-sub" />
+                        <Label text="Unpaid expenses" styleClass="chip-title" />
+                        <Label fx:id="sideUnpaidExpensesLabel" text="0" styleClass="chip-sub" />
+                        <Label text="Next monthly due" styleClass="chip-title" />
+                        <Label fx:id="sideNextDueLabel" text="None" styleClass="chip-sub" />
+                    </children>
+                </VBox>
+
+                <Region VBox.vgrow="ALWAYS" />
+
+                <Button text="Refresh Data" onAction="#onRefresh" styleClass="rail-button" maxWidth="1.7976931348623157E308" />
+            </children>
+        </VBox>
+    </left>
+
+    <center>
+        <VBox spacing="14.0" BorderPane.alignment="CENTER">
+            <children>
+                <HBox alignment="CENTER_LEFT">
+                    <children>
+                        <VBox spacing="2.0">
+                            <children>
+                                <Label text="House Operations" styleClass="workspace-title" />
+                                <Label text="Live chores, expenses, and balances in one place." styleClass="workspace-subtitle" />
+                            </children>
+                        </VBox>
+                    </children>
+                </HBox>
+                <HBox spacing="12.0">
+                    <children>
+                        <VBox spacing="2.0" styleClass="kpi-tile" HBox.hgrow="ALWAYS">
+                            <children>
+                                <Label text="Open Chores" styleClass="kpi-label" />
+                                <Label fx:id="choreCountLabel" text="0" styleClass="kpi-value" />
+                            </children>
+                        </VBox>
+                        <VBox spacing="2.0" styleClass="kpi-tile" HBox.hgrow="ALWAYS">
+                            <children>
+                                <Label text="Completed" styleClass="kpi-label" />
+                                <Label fx:id="completedCountLabel" text="0" styleClass="kpi-value" />
+                            </children>
+                        </VBox>
+                        <VBox spacing="2.0" styleClass="kpi-tile" HBox.hgrow="ALWAYS">
+                            <children>
+                                <Label text="Spend Total" styleClass="kpi-label" />
+                                <Label fx:id="expenseTotalLabel" text="\$0.00" styleClass="kpi-value" />
+                            </children>
+                        </VBox>
+                    </children>
+                </HBox>
+
+                <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS" styleClass="workspace-tabs">
+                    <tabs>
+                        <Tab text="Overview">
+                            <content>
+                                <HBox spacing="12.0">
+                                    <children>
+                                        <VBox spacing="8.0" styleClass="workspace-card" HBox.hgrow="ALWAYS">
+                                            <children>
+                                                <Label text="Chores Snapshot" styleClass="card-title" />
+                                                <ListView fx:id="choresSummaryList" VBox.vgrow="ALWAYS" />
+                                            </children>
+                                        </VBox>
+                                        <VBox spacing="8.0" styleClass="workspace-card" HBox.hgrow="ALWAYS">
+                                            <children>
+                                                <Label text="Spent by Person" styleClass="card-title" />
+                                                <ListView fx:id="balancesSummaryList" prefHeight="240.0" VBox.vgrow="ALWAYS" />
+                                            </children>
+                                        </VBox>
+                                        <VBox spacing="8.0" styleClass="workspace-card" HBox.hgrow="ALWAYS">
+                                            <children>
+                                                <Label text="Spend Distribution" styleClass="card-title" />
+                                                <PieChart fx:id="spendingPieChart" labelsVisible="true" legendVisible="true" />
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </HBox>
+                            </content>
+                        </Tab>
+                        <Tab text="Chores">
+                            <content>
+                                <VBox spacing="10.0" styleClass="workspace-card">
+                                    <children>
+                                        <HBox alignment="CENTER_LEFT" spacing="8.0">
+                                            <children>
+                                                <Label text="Room Chores" styleClass="card-title" />
+                                                <Region HBox.hgrow="ALWAYS" />
+                                                <Button text="Add Chore" onAction="#onAddChore" styleClass="brand-button" />
+                                                <Button text="Mark Completed" onAction="#onCompleteSelectedChore" styleClass="ghost-button" />
+                                                <Button text="Delete Selected" onAction="#onDeleteSelectedChore" styleClass="ghost-button" />
+                                            </children>
+                                        </HBox>
+                                        <ListView fx:id="choresList" VBox.vgrow="ALWAYS" />
+                                    </children>
+                                </VBox>
+                            </content>
+                        </Tab>
+                        <Tab text="Expenses">
+                            <content>
+                                <VBox spacing="10.0" styleClass="workspace-card">
+                                    <children>
+                                        <HBox alignment="CENTER_LEFT">
+                                            <children>
+                                                <Label text="Expenses Ledger" styleClass="card-title" />
+                                                <Region HBox.hgrow="ALWAYS" />
+                                                <Button text="Add Expense" onAction="#onAddExpense" styleClass="brand-button" />
+                                                <Button text="Mark Selected As Paid" onAction="#onMarkSelectedExpensePaid" styleClass="ghost-button" />
+                                                <Button text="Add Recurring Expense" onAction="#onAddRecurringExpense" styleClass="ghost-button" />
+                                                <Button text="Delete Selected" onAction="#onDeleteSelectedExpense" styleClass="ghost-button" />
+                                            </children>
+                                        </HBox>
+                                        <ListView fx:id="expensesList" VBox.vgrow="ALWAYS" />
+                                        <Label text="Spent by Person" styleClass="card-title" />
+                                        <ListView fx:id="spentByPersonList" prefHeight="240.0" />
+                                    </children>
+                                </VBox>
+                            </content>
+                        </Tab>
+                    </tabs>
+                </TabPane>
+            </children>
+        </VBox>
+    </center>
+</BorderPane>
