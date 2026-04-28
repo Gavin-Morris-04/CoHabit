@@ -158,6 +158,7 @@ public class MainController {
             Room updatedRoom = roomManager.removeRoommate(appContext.getActiveRoom(), selected.getUserID());
             appContext.setActiveRoom(updatedRoom);
             appContext.setActiveMembers(roomManager.getRoomUsers(updatedRoom));
+            purgeDeletedUserReferences(selected.getUserID(), updatedRoom.getMemberIds());
             refreshDashboard();
         } catch (Exception ex) {
             showError("Remove roommate failed: " + ex.getMessage());
@@ -517,6 +518,7 @@ public class MainController {
                     })
                     .collect(Collectors.toList());
             Map<String, Double> spentByUser = new HashMap<>();
+            Set<String> activeMemberIds = new HashSet<>(appContext.getActiveRoom().getMemberIds());
             paidExpensesForPie.clear();
             for (Expense expense : roomExpenses) {
                 if (expense.isRecurring() && !expense.isPaidForCurrentCycle()) {
@@ -528,6 +530,9 @@ public class MainController {
                 paidExpensesForPie.add(expense);
                 Map<String, Double> payerContributions = resolvePayerContributions(expense);
                 for (Map.Entry<String, Double> payer : payerContributions.entrySet()) {
+                    if (!activeMemberIds.contains(payer.getKey())) {
+                        continue;
+                    }
                     double paidAmount = expense.getAmount() * (payer.getValue() / 100.0);
                     if (paidAmount <= 0.005) {
                         continue;
@@ -733,6 +738,83 @@ public class MainController {
             return Map.of();
         }
         return Map.of(expense.getPaidByUserID(), 100.0);
+    }
+
+    private void purgeDeletedUserReferences(String removedUserId, List<String> remainingMemberIds) throws IOException, InterruptedException {
+        if (removedUserId == null || removedUserId.isBlank()) {
+            return;
+        }
+        Set<String> remaining = new HashSet<>(remainingMemberIds);
+        String fallbackUserId = appContext.getActiveUser() != null ? appContext.getActiveUser().getUserID() : remainingMemberIds.get(0);
+
+        List<Chore> chores = choreManager.getRoomChores(appContext.getActiveRoom().getRoomID());
+        for (Chore chore : chores) {
+            if (!removedUserId.equals(chore.getAssignedToUserID())) {
+                continue;
+            }
+            chore.setAssignedToUserID(fallbackUserId);
+            firebaseService.saveChore(chore);
+        }
+
+        List<Expense> expenses = expenseManager.getRoomExpenses(appContext.getActiveRoom().getRoomID());
+        for (Expense expense : expenses) {
+            boolean changed = false;
+
+            Map<String, Double> split = new HashMap<>(expense.getCustomSplitPercentages());
+            split.entrySet().removeIf(entry -> !remaining.contains(entry.getKey()));
+            if (split.isEmpty() && !remainingMemberIds.isEmpty()) {
+                double each = 100.0 / remainingMemberIds.size();
+                for (String memberId : remainingMemberIds) {
+                    split.put(memberId, each);
+                }
+            } else if (!split.isEmpty()) {
+                split = normalizeToHundred(split);
+            }
+            if (!split.equals(expense.getCustomSplitPercentages())) {
+                expense.setCustomSplitPercentages(split);
+                changed = true;
+            }
+
+            Map<String, Double> payers = new HashMap<>(resolvePayerContributions(expense));
+            payers.entrySet().removeIf(entry -> !remaining.contains(entry.getKey()));
+            if (expense.isPaid()) {
+                if (payers.isEmpty()) {
+                    expense.setPaid(false);
+                    expense.setPaidByUserID("");
+                    expense.setPaidAt(null);
+                    expense.setPayerContributionPercentages(Map.of());
+                    changed = true;
+                } else {
+                    Map<String, Double> normalizedPayers = normalizeToHundred(payers);
+                    expense.setPayerContributionPercentages(normalizedPayers);
+                    expense.setPaidByUserID(
+                            normalizedPayers.size() == 1
+                                    ? normalizedPayers.keySet().iterator().next()
+                                    : "multiple"
+                    );
+                    changed = true;
+                }
+            } else if (!expense.getPayerContributionPercentages().isEmpty()) {
+                expense.setPayerContributionPercentages(Map.of());
+                changed = true;
+            }
+
+            if (changed) {
+                firebaseService.saveExpense(expense);
+            }
+        }
+    }
+
+    private Map<String, Double> normalizeToHundred(Map<String, Double> raw) {
+        double total = raw.values().stream().mapToDouble(Double::doubleValue).sum();
+        if (total <= 0.0001) {
+            return Map.of();
+        }
+        Map<String, Double> normalized = new HashMap<>();
+        for (Map.Entry<String, Double> entry : raw.entrySet()) {
+            normalized.put(entry.getKey(), (entry.getValue() / total) * 100.0);
+        }
+        return normalized;
     }
 
     private void cacheKnownUserNames(List<Chore> chores, List<Expense> expenses) throws IOException, InterruptedException {
