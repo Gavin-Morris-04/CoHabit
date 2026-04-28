@@ -78,7 +78,6 @@
 
                 <Region VBox.vgrow="ALWAYS" />
 
-                <Button text="Refresh Data" onAction="#onRefresh" styleClass="rail-button" maxWidth="1.7976931348623157E308" />
             </children>
         </VBox>
     </left>

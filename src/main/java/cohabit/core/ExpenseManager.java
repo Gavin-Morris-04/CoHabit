@@ -120,37 +120,6 @@ public class ExpenseManager {
         return firebaseService.saveExpense(recurring);
     }
 
-    public Expense markExpensePaid(Expense expense, String paidByUserId) throws IOException, InterruptedException {
-        return markExpensePaid(expense, paidByUserId, true, null, null);
-    }
-
-    public Expense markExpensePaid(
-            Expense expense,
-            String paidByUserId,
-            boolean evenSplit,
-            Map<String, Double> customPercentages,
-            List<String> memberIds
-    ) throws IOException, InterruptedException {
-        if (expense == null) {
-            throw new IllegalArgumentException("Expense is required.");
-        }
-        if (paidByUserId == null || paidByUserId.isBlank()) {
-            throw new IllegalArgumentException("Paid by user is required.");
-        }
-        if (memberIds == null || memberIds.isEmpty()) {
-            throw new IllegalArgumentException("Members are required.");
-        }
-        Map<String, Double> percentages = evenSplit
-                ? buildEvenSplit(memberIds)
-                : buildCustomSplit(memberIds, customPercentages, paidByUserId);
-        expense.setPaid(true);
-        expense.setPaidByUserID(paidByUserId);
-        expense.setCustomSplitPercentages(percentages);
-        expense.setPayerContributionPercentages(normalizePayerContributions(memberIds, paidByUserId, null));
-        expense.setPaidAt(Instant.now());
-        return firebaseService.saveExpense(expense);
-    }
-
     public Expense markExpensePaid(
             Expense expense,
             Map<String, Double> payerContributionPercentages,

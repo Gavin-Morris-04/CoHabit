@@ -88,6 +88,7 @@ public class MainController {
     private final List<Chore> displayedChores = new ArrayList<>();
     private final List<Expense> paidExpensesForPie = new ArrayList<>();
     private final Map<PieChart.Data, String> pieSliceUserIds = new IdentityHashMap<>();
+    private final Map<String, String> knownUserNames = new HashMap<>();
     private final Set<String> selectedExpenseIds = new HashSet<>();
     private final Set<String> selectedChoreIds = new HashSet<>();
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("MMM dd");
@@ -99,11 +100,6 @@ public class MainController {
         this.expenseManager = expenseManager;
         this.firebaseService = firebaseService;
         configureListViews();
-        refreshDashboard();
-    }
-
-    @FXML
-    public void onRefresh() {
         refreshDashboard();
     }
 
@@ -389,23 +385,6 @@ public class MainController {
     }
 
     @FXML
-    private void onMarkRecurringExpensePaid() {
-        List<Expense> selectedExpenses = getSelectedExpenses().stream().filter(Expense::isRecurring).collect(Collectors.toList());
-        if (selectedExpenses.isEmpty()) {
-            showError("Select a recurring expense from the expenses list first.");
-            return;
-        }
-        try {
-            for (Expense selected : selectedExpenses) {
-                expenseManager.markRecurringExpensePaid(selected, appContext.getActiveUser().getUserID());
-            }
-            refreshDashboard();
-        } catch (Exception ex) {
-            showError("Mark recurring expense paid failed: " + ex.getMessage());
-        }
-    }
-
-    @FXML
     private void onDeleteSelectedExpense() {
         List<Expense> selected = getSelectedExpenses();
         if (selected.isEmpty()) {
@@ -489,6 +468,7 @@ public class MainController {
         try {
             List<Chore> roomChores = choreManager.getRoomChores(appContext.getActiveRoom().getRoomID());
             List<Chore> chores = new ArrayList<>(roomChores);
+            cacheKnownUserNames(roomChores, List.of());
             chores.sort((a, b) -> {
                 int byStatus = Boolean.compare("completed".equalsIgnoreCase(a.getStatus()), "completed".equalsIgnoreCase(b.getStatus()));
                 if (byStatus != 0) {
@@ -506,6 +486,7 @@ public class MainController {
 
             List<Expense> roomExpenses = expenseManager.getRoomExpenses(appContext.getActiveRoom().getRoomID());
             List<Expense> expenses = new ArrayList<>(roomExpenses);
+            cacheKnownUserNames(roomChores, roomExpenses);
             expenses.sort((a, b) -> {
                 if (a.isRecurring() != b.isRecurring()) {
                     return Boolean.compare(b.isRecurring(), a.isRecurring());
@@ -633,41 +614,21 @@ public class MainController {
 
         choresList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         expensesList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        choresList.getSelectionModel().selectedIndexProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && newVal.intValue() >= 0) {
+                choresList.getSelectionModel().clearSelection();
+            }
+        });
+        expensesList.getSelectionModel().selectedIndexProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && newVal.intValue() >= 0) {
+                expensesList.getSelectionModel().clearSelection();
+            }
+        });
         choresList.setCellFactory(list -> new SelectableChoreCell());
         choresSummaryList.setCellFactory(list -> new StatusAwareCell());
         expensesList.setCellFactory(list -> new SelectableExpenseCell());
         balancesSummaryList.setCellFactory(list -> new BalanceCell());
 
-        expensesList.setOnMouseClicked(event -> {
-            int idx = expensesList.getSelectionModel().getSelectedIndex();
-            if (idx < 0 || idx >= displayedExpenses.size()) {
-                return;
-            }
-            showExpenseSplitDetails(displayedExpenses.get(idx));
-        });
-    }
-
-    private void showExpenseSplitDetails(Expense expense) {
-        Map<String, Double> displaySplit = resolvePayerContributions(expense);
-        if (displaySplit.isEmpty()) {
-            displaySplit = expense.getCustomSplitPercentages();
-        }
-        String splitDetails = displaySplit.entrySet().stream()
-                .sorted(Comparator.comparing(Map.Entry::getKey))
-                .map(entry -> {
-                    double amount = expense.getAmount() * (entry.getValue() / 100.0);
-                    return userName(entry.getKey()) + " -> " + String.format("%.1f%% ($%.2f)", entry.getValue(), amount);
-                })
-                .collect(Collectors.joining("\n"));
-        Alert alert = new Alert(
-                Alert.AlertType.INFORMATION,
-                "Expense: " + expense.getDescription()
-                        + "\nAmount: $" + String.format("%.2f", expense.getAmount())
-                        + "\nStatus: " + buildPaidStatusText(expense)
-                        + "\n\nPaid contribution split:\n" + splitDetails
-        );
-        alert.setHeaderText("Expense Split Details");
-        alert.showAndWait();
     }
 
     private String buildPaidStatusText(Expense expense) {
@@ -689,6 +650,30 @@ public class MainController {
         Label label = new Label(text);
         label.getStyleClass().add("empty-placeholder");
         return label;
+    }
+
+    private void showExpenseSplitDetails(Expense expense) {
+        Map<String, Double> displaySplit = resolvePayerContributions(expense);
+        if (displaySplit.isEmpty()) {
+            displaySplit = expense.getCustomSplitPercentages();
+        }
+        String splitDetails = displaySplit.entrySet().stream()
+                .sorted(Comparator.comparing(Map.Entry::getKey))
+                .map(entry -> {
+                    double amount = expense.getAmount() * (entry.getValue() / 100.0);
+                    return userName(entry.getKey()) + " -> " + String.format("%.1f%% ($%.2f)", entry.getValue(), amount);
+                })
+                .collect(Collectors.joining("\n"));
+        Alert alert = new Alert(
+                Alert.AlertType.INFORMATION,
+                "Expense: " + expense.getDescription()
+                        + "\nAmount: $" + String.format("%.2f", expense.getAmount())
+                        + "\nStatus: " + buildPaidStatusText(expense)
+                        + "\nCreated: " + DATE_FORMAT.format(expense.getCreatedAt().atZone(ZoneId.systemDefault()))
+                        + "\n\nPaid contribution split:\n" + splitDetails
+        );
+        alert.setHeaderText("Expense Details");
+        alert.showAndWait();
     }
 
     private void installPieClickHandlers(List<PieChart.Data> pieData) {
@@ -740,39 +725,6 @@ public class MainController {
         alert.showAndWait();
     }
 
-    private double calculateUserShareAmount(Expense expense, String userId) {
-        if (expense == null || userId == null || userId.isBlank()) {
-            return 0.0;
-        }
-        double pct = resolveUserSharePercent(expense, userId);
-        return expense.getAmount() * (pct / 100.0);
-    }
-
-    private double resolveUserSharePercent(Expense expense, String userId) {
-        Map<String, Double> splits = expense.getCustomSplitPercentages();
-        if (splits == null || splits.isEmpty()) {
-            if (appContext.getActiveMembers().isEmpty()) {
-                return 0.0;
-            }
-            return 100.0 / appContext.getActiveMembers().size();
-        }
-        Double direct = splits.get(userId);
-        if (direct != null && direct > 0.0) {
-            return direct;
-        }
-        if (!userId.equals(expense.getPaidByUserID())) {
-            return 0.0;
-        }
-        double total = splits.values().stream()
-                .filter(value -> value != null && value > 0.0)
-                .mapToDouble(Double::doubleValue)
-                .sum();
-        if (total >= 99.99) {
-            return 0.0;
-        }
-        return 100.0 - total;
-    }
-
     private Map<String, Double> resolvePayerContributions(Expense expense) {
         if (expense.getPayerContributionPercentages() != null && !expense.getPayerContributionPercentages().isEmpty()) {
             return expense.getPayerContributionPercentages();
@@ -781,6 +733,37 @@ public class MainController {
             return Map.of();
         }
         return Map.of(expense.getPaidByUserID(), 100.0);
+    }
+
+    private void cacheKnownUserNames(List<Chore> chores, List<Expense> expenses) throws IOException, InterruptedException {
+        Map<String, String> names = appContext.getActiveMembers().stream()
+                .collect(Collectors.toMap(User::getUserID, User::getName, (left, right) -> left));
+        Set<String> referencedIds = new HashSet<>(names.keySet());
+
+        for (Chore chore : chores) {
+            if (chore.getAssignedToUserID() != null && !chore.getAssignedToUserID().isBlank()) {
+                referencedIds.add(chore.getAssignedToUserID());
+            }
+        }
+        for (Expense expense : expenses) {
+            if (expense.getPaidByUserID() != null && !expense.getPaidByUserID().isBlank() && !"multiple".equals(expense.getPaidByUserID())) {
+                referencedIds.add(expense.getPaidByUserID());
+            }
+            referencedIds.addAll(expense.getCustomSplitPercentages().keySet());
+            referencedIds.addAll(resolvePayerContributions(expense).keySet());
+        }
+
+        List<String> missingIds = referencedIds.stream()
+                .filter(id -> !names.containsKey(id))
+                .collect(Collectors.toList());
+        if (!missingIds.isEmpty()) {
+            List<User> missingUsers = firebaseService.getUsersByIds(missingIds);
+            for (User user : missingUsers) {
+                names.put(user.getUserID(), user.getName());
+            }
+        }
+        knownUserNames.clear();
+        knownUserNames.putAll(names);
     }
 
     private PaymentFormControls buildPaymentControls(double defaultAmount) {
@@ -875,31 +858,15 @@ public class MainController {
     }
 
     private List<Chore> getSelectedChores() {
-        List<Chore> selected = displayedChores.stream()
+        return displayedChores.stream()
                 .filter(chore -> selectedChoreIds.contains(chore.getChoreID()))
                 .collect(Collectors.toList());
-        if (!selected.isEmpty()) {
-            return selected;
-        }
-        int idx = choresList.getSelectionModel().getSelectedIndex();
-        if (idx >= 0 && idx < displayedChores.size()) {
-            return List.of(displayedChores.get(idx));
-        }
-        return List.of();
     }
 
     private List<Expense> getSelectedExpenses() {
-        List<Expense> selected = displayedExpenses.stream()
+        return displayedExpenses.stream()
                 .filter(expense -> selectedExpenseIds.contains(expense.getExpenseID()))
                 .collect(Collectors.toList());
-        if (!selected.isEmpty()) {
-            return selected;
-        }
-        int idx = expensesList.getSelectionModel().getSelectedIndex();
-        if (idx >= 0 && idx < displayedExpenses.size()) {
-            return List.of(displayedExpenses.get(idx));
-        }
-        return List.of();
     }
 
     private static class PaymentFormControls {
@@ -1000,6 +967,16 @@ public class MainController {
                     selectedExpenseIds.remove(expenseId);
                 }
             });
+            setOnMouseClicked(event -> {
+                if (event.getClickCount() < 2) {
+                    return;
+                }
+                int idx = getIndex();
+                if (idx < 0 || idx >= displayedExpenses.size()) {
+                    return;
+                }
+                showExpenseSplitDetails(displayedExpenses.get(idx));
+            });
         }
 
         @Override
@@ -1051,11 +1028,13 @@ public class MainController {
     }
 
     private String userName(String userId) {
-        return appContext.getActiveMembers().stream()
-                .filter(u -> u.getUserID().equals(userId))
-                .findFirst()
-                .map(User::getName)
-                .orElse(userId);
+        if (userId == null || userId.isBlank()) {
+            return "-";
+        }
+        if ("multiple".equals(userId)) {
+            return "Multiple";
+        }
+        return knownUserNames.getOrDefault(userId, userId);
     }
 
     private void showError(String message) {
