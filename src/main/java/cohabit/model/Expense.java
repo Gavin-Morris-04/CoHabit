@@ -11,7 +11,9 @@ public class Expense {
     private String paidByUserID;
     private double amount;
     private Map<String, Double> customSplitPercentages = new HashMap<>();
+    private Map<String, Double> payerContributionPercentages = new HashMap<>();
     private Instant createdAt;
+    private Instant paidAt;
     private boolean paid;
     private boolean recurring;
     private Instant nextDueAt;
@@ -82,12 +84,28 @@ public class Expense {
         this.customSplitPercentages = new HashMap<>(customSplitPercentages);
     }
 
+    public Map<String, Double> getPayerContributionPercentages() {
+        return payerContributionPercentages;
+    }
+
+    public void setPayerContributionPercentages(Map<String, Double> payerContributionPercentages) {
+        this.payerContributionPercentages = new HashMap<>(payerContributionPercentages);
+    }
+
     public Instant getCreatedAt() {
         return createdAt;
     }
 
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Instant getPaidAt() {
+        return paidAt;
+    }
+
+    public void setPaidAt(Instant paidAt) {
+        this.paidAt = paidAt;
     }
 
     public boolean isPaid() {

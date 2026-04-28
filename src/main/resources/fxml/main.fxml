@@ -6,6 +6,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.chart.PieChart?>
@@ -63,6 +64,15 @@
                         <Label fx:id="sideUnpaidExpensesLabel" text="0" styleClass="chip-sub" />
                         <Label text="Next monthly due" styleClass="chip-title" />
                         <Label fx:id="sideNextDueLabel" text="None" styleClass="chip-sub" />
+                    </children>
+                </VBox>
+
+                <VBox spacing="8.0" styleClass="room-chip">
+                    <children>
+                        <Label text="Roommate Management" styleClass="chip-title" />
+                        <Button text="Add Roommate" onAction="#onAddRoommate" styleClass="ghost-button" maxWidth="1.7976931348623157E308" />
+                        <ComboBox fx:id="roommateSelectBox" promptText="Select roommate" maxWidth="1.7976931348623157E308" />
+                        <Button text="Remove Selected" onAction="#onRemoveSelectedRoommate" styleClass="ghost-button" maxWidth="1.7976931348623157E308" />
                     </children>
                 </VBox>
 

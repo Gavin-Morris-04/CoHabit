@@ -80,6 +80,46 @@ public class RoomManager {
                 .collect(Collectors.toList());
     }
 
+    public Room addRoommate(Room room, String roommateName) throws IOException, InterruptedException {
+        if (room == null) {
+            throw new IllegalArgumentException("Room is required.");
+        }
+        if (roommateName == null || roommateName.isBlank()) {
+            throw new IllegalArgumentException("Roommate name is required.");
+        }
+        String normalized = roommateName.trim();
+        List<User> users = getRoomUsers(room);
+        boolean exists = users.stream().anyMatch(user -> user.getName().equalsIgnoreCase(normalized));
+        if (exists) {
+            throw new IllegalArgumentException("Roommate already exists.");
+        }
+        User user = new User(UUID.randomUUID().toString(), normalized, room.getRoomPassword());
+        firebaseService.saveUser(user);
+        List<String> memberIds = new ArrayList<>(room.getMemberIds());
+        memberIds.add(user.getUserID());
+        room.setMemberIds(memberIds);
+        return firebaseService.saveRoom(room);
+    }
+
+    public Room removeRoommate(Room room, String userId) throws IOException, InterruptedException {
+        if (room == null) {
+            throw new IllegalArgumentException("Room is required.");
+        }
+        if (userId == null || userId.isBlank()) {
+            throw new IllegalArgumentException("Roommate is required.");
+        }
+        List<String> memberIds = new ArrayList<>(room.getMemberIds());
+        if (!memberIds.contains(userId)) {
+            throw new IllegalArgumentException("Roommate is not in this room.");
+        }
+        if (memberIds.size() <= 1) {
+            throw new IllegalArgumentException("At least one roommate must remain.");
+        }
+        memberIds.remove(userId);
+        room.setMemberIds(memberIds);
+        return firebaseService.saveRoom(room);
+    }
+
     private void validateRoomInputs(String roomUsername, String roomTitle, String ownerName, String roomPassword, List<String> roommateNames) {
         if (roomUsername == null || roomUsername.isBlank()) {
             throw new IllegalArgumentException("Room username is required.");

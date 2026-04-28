@@ -53,7 +53,7 @@ public class Main extends Application {
         Scene scene = new Scene(loader.load(), 1200, 780);
         scene.getStylesheets().add(getClass().getResource("/styles/app.css").toExternalForm());
         mainController = loader.getController();
-        mainController.init(appContext, choreManager, expenseManager, firebaseService);
+        mainController.init(appContext, roomManager, choreManager, expenseManager, firebaseService);
         primaryStage.setScene(scene);
         primaryStage.setMaximized(true); // windowed fullscreen
         primaryStage.show();

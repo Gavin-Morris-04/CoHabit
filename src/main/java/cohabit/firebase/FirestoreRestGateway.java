@@ -230,6 +230,9 @@ public class FirestoreRestGateway implements FirestoreGateway {
         fields.set("paidByUserID", stringValue(expense.getPaidByUserID()));
         fields.set("amount", doubleValue(expense.getAmount()));
         fields.set("createdAt", timestampValue(expense.getCreatedAt()));
+        if (expense.getPaidAt() != null) {
+            fields.set("paidAt", timestampValue(expense.getPaidAt()));
+        }
         fields.set("paid", booleanValue(expense.isPaid()));
         fields.set("recurring", booleanValue(expense.isRecurring()));
         fields.set("paidForCurrentCycle", booleanValue(expense.isPaidForCurrentCycle()));
@@ -244,6 +247,14 @@ public class FirestoreRestGateway implements FirestoreGateway {
         ObjectNode wrapped = mapper.createObjectNode();
         wrapped.set("mapValue", mapValue);
         fields.set("customSplitPercentages", wrapped);
+
+        ObjectNode payerMapFields = mapper.createObjectNode();
+        expense.getPayerContributionPercentages().forEach((k, v) -> payerMapFields.set(k, doubleValue(v)));
+        ObjectNode payerMapValue = mapper.createObjectNode();
+        payerMapValue.set("fields", payerMapFields);
+        ObjectNode payerWrapped = mapper.createObjectNode();
+        payerWrapped.set("mapValue", payerMapValue);
+        fields.set("payerContributionPercentages", payerWrapped);
         return fields;
     }
 
@@ -292,6 +303,9 @@ public class FirestoreRestGateway implements FirestoreGateway {
         expense.setPaidByUserID(fields.path("paidByUserID").path("stringValue").asText());
         expense.setAmount(fields.path("amount").path("doubleValue").asDouble());
         expense.setCreatedAt(Instant.parse(fields.path("createdAt").path("timestampValue").asText()));
+        if (fields.has("paidAt")) {
+            expense.setPaidAt(Instant.parse(fields.path("paidAt").path("timestampValue").asText()));
+        }
         expense.setPaid(fields.path("paid").path("booleanValue").asBoolean(true));
         expense.setRecurring(fields.path("recurring").path("booleanValue").asBoolean(false));
         expense.setPaidForCurrentCycle(fields.path("paidForCurrentCycle").path("booleanValue").asBoolean(true));
@@ -304,6 +318,12 @@ public class FirestoreRestGateway implements FirestoreGateway {
         while (it.hasNext()) {
             Map.Entry<String, JsonNode> entry = it.next();
             expense.getCustomSplitPercentages().put(entry.getKey(), entry.getValue().path("doubleValue").asDouble());
+        }
+        JsonNode payerMapFields = fields.path("payerContributionPercentages").path("mapValue").path("fields");
+        Iterator<Map.Entry<String, JsonNode>> payerIt = payerMapFields.fields();
+        while (payerIt.hasNext()) {
+            Map.Entry<String, JsonNode> entry = payerIt.next();
+            expense.getPayerContributionPercentages().put(entry.getKey(), entry.getValue().path("doubleValue").asDouble());
         }
         return expense;
     }

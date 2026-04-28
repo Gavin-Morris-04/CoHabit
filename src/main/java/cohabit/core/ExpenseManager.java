@@ -27,6 +27,20 @@ public class ExpenseManager {
             boolean evenSplit,
             Map<String, Double> customPercentages
     ) throws IOException, InterruptedException {
+        return addExpense(roomId, description, amount, paidByUserId, paid, memberIds, evenSplit, customPercentages, null);
+    }
+
+    public Expense addExpense(
+            String roomId,
+            String description,
+            double amount,
+            String paidByUserId,
+            boolean paid,
+            List<String> memberIds,
+            boolean evenSplit,
+            Map<String, Double> customPercentages,
+            Map<String, Double> payerContributionPercentages
+    ) throws IOException, InterruptedException {
         validateInputs(roomId, description, amount, paidByUserId, memberIds, paid);
 
         Map<String, Double> percentages = evenSplit
@@ -43,6 +57,14 @@ public class ExpenseManager {
                 Instant.now()
         );
         expense.setPaid(paid);
+        if (paid) {
+            Map<String, Double> payers = normalizePayerContributions(memberIds, paidByUserId, payerContributionPercentages);
+            expense.setPayerContributionPercentages(payers);
+            expense.setPaidAt(Instant.now());
+            if (payers.size() > 1) {
+                expense.setPaidByUserID("multiple");
+            }
+        }
         return firebaseService.saveExpense(expense);
     }
 
@@ -55,6 +77,20 @@ public class ExpenseManager {
             List<String> memberIds,
             boolean evenSplit,
             Map<String, Double> customPercentages
+    ) throws IOException, InterruptedException {
+        return addRecurringExpense(roomId, description, amount, paidByUserId, paid, memberIds, evenSplit, customPercentages, null);
+    }
+
+    public Expense addRecurringExpense(
+            String roomId,
+            String description,
+            double amount,
+            String paidByUserId,
+            boolean paid,
+            List<String> memberIds,
+            boolean evenSplit,
+            Map<String, Double> customPercentages,
+            Map<String, Double> payerContributionPercentages
     ) throws IOException, InterruptedException {
         validateInputs(roomId, description, amount, paidByUserId, memberIds, paid);
         Map<String, Double> percentages = evenSplit
@@ -72,6 +108,14 @@ public class ExpenseManager {
         recurring.setRecurring(true);
         recurring.setPaid(paid);
         recurring.setPaidForCurrentCycle(paid);
+        if (paid) {
+            Map<String, Double> payers = normalizePayerContributions(memberIds, paidByUserId, payerContributionPercentages);
+            recurring.setPayerContributionPercentages(payers);
+            recurring.setPaidAt(Instant.now());
+            if (payers.size() > 1) {
+                recurring.setPaidByUserID("multiple");
+            }
+        }
         recurring.setNextDueAt(Instant.now().plus(30, ChronoUnit.DAYS));
         return firebaseService.saveExpense(recurring);
     }
@@ -102,6 +146,33 @@ public class ExpenseManager {
         expense.setPaid(true);
         expense.setPaidByUserID(paidByUserId);
         expense.setCustomSplitPercentages(percentages);
+        expense.setPayerContributionPercentages(normalizePayerContributions(memberIds, paidByUserId, null));
+        expense.setPaidAt(Instant.now());
+        return firebaseService.saveExpense(expense);
+    }
+
+    public Expense markExpensePaid(
+            Expense expense,
+            Map<String, Double> payerContributionPercentages,
+            boolean evenSplit,
+            Map<String, Double> customPercentages,
+            List<String> memberIds
+    ) throws IOException, InterruptedException {
+        if (expense == null) {
+            throw new IllegalArgumentException("Expense is required.");
+        }
+        if (memberIds == null || memberIds.isEmpty()) {
+            throw new IllegalArgumentException("Members are required.");
+        }
+        Map<String, Double> percentages = evenSplit
+                ? buildEvenSplit(memberIds)
+                : buildCustomSplit(memberIds, customPercentages, "");
+        Map<String, Double> payers = normalizePayerContributions(memberIds, "", payerContributionPercentages);
+        expense.setPaid(true);
+        expense.setPaidByUserID(payers.size() > 1 ? "multiple" : payers.keySet().iterator().next());
+        expense.setCustomSplitPercentages(percentages);
+        expense.setPayerContributionPercentages(payers);
+        expense.setPaidAt(Instant.now());
         return firebaseService.saveExpense(expense);
     }
 
@@ -109,6 +180,8 @@ public class ExpenseManager {
         recurringExpense.setPaidByUserID(paidByUserId);
         recurringExpense.setPaid(true);
         recurringExpense.setPaidForCurrentCycle(true);
+        recurringExpense.setPayerContributionPercentages(normalizePayerContributions(List.of(paidByUserId), paidByUserId, null));
+        recurringExpense.setPaidAt(Instant.now());
         Instant nextDue = recurringExpense.getNextDueAt() == null
                 ? Instant.now().plus(30, ChronoUnit.DAYS)
                 : recurringExpense.getNextDueAt().plus(30, ChronoUnit.DAYS);
@@ -138,7 +211,15 @@ public class ExpenseManager {
                 continue;
             }
             double amount = expense.getAmount();
-            balances.put(expense.getPaidByUserID(), balances.getOrDefault(expense.getPaidByUserID(), 0.0) + amount);
+            Map<String, Double> payerContributions = expense.getPayerContributionPercentages();
+            if (payerContributions != null && !payerContributions.isEmpty()) {
+                for (Map.Entry<String, Double> payer : payerContributions.entrySet()) {
+                    double paidAmount = amount * (payer.getValue() / 100.0);
+                    balances.put(payer.getKey(), balances.getOrDefault(payer.getKey(), 0.0) + paidAmount);
+                }
+            } else {
+                balances.put(expense.getPaidByUserID(), balances.getOrDefault(expense.getPaidByUserID(), 0.0) + amount);
+            }
             for (Map.Entry<String, Double> split : expense.getCustomSplitPercentages().entrySet()) {
                 double share = amount * (split.getValue() / 100.0);
                 balances.put(split.getKey(), balances.getOrDefault(split.getKey(), 0.0) - share);
@@ -216,5 +297,33 @@ public class ExpenseManager {
         if (memberIds == null || memberIds.isEmpty()) {
             throw new IllegalArgumentException("Members are required.");
         }
+    }
+
+    private Map<String, Double> normalizePayerContributions(
+            List<String> memberIds,
+            String paidByUserId,
+            Map<String, Double> payerContributionPercentages
+    ) {
+        if (payerContributionPercentages == null || payerContributionPercentages.isEmpty()) {
+            if (paidByUserId == null || paidByUserId.isBlank()) {
+                throw new IllegalArgumentException("Paid by user is required.");
+            }
+            return Map.of(paidByUserId, 100.0);
+        }
+        Map<String, Double> normalized = new HashMap<>();
+        for (String memberId : memberIds) {
+            double pct = payerContributionPercentages.getOrDefault(memberId, 0.0);
+            if (pct > 0.0) {
+                normalized.put(memberId, pct);
+            }
+        }
+        if (normalized.isEmpty()) {
+            throw new IllegalArgumentException("At least one payer must have a positive contribution.");
+        }
+        double total = normalized.values().stream().mapToDouble(Double::doubleValue).sum();
+        if (Math.abs(total - 100.0) > 0.05) {
+            throw new IllegalArgumentException("Payer contributions must total 100%.");
+        }
+        return normalized;
     }
 }
